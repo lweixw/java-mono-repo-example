@@ -1,0 +1,45 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'com.google.cloud.tools.jib' version '1.1.2'
+}
+
+sourceCompatibility = 1.8
+group = 'example.io.leowei'
+version = '0.1.0'
+jib.container.useCurrentTimestamp = true
+
+tasks.jibDockerBuild {
+    onlyIf {
+        !assemble.state.upToDate
+    }
+}
+
+build {
+    dependsOn tasks.jibDockerBuild
+}
+
+mainClassName = 'example.projecta.Main'
+
+jib {
+    from {
+        image = 'openjdk:11.0.3-jre-slim'
+    }
+    to {
+        image = 'project-a:latest'
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+
+    // If you do not explicitly declare a version it will build
+    // the dependency and use that version. If you do declare a version,
+    // and that version exists in one of the repositories it will be used,
+    // otherwise the dependent project will be built and that version will
+    // be used.
+    implementation project(':project-b')
+}
