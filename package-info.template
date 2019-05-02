@@ -1,0 +1,3 @@
+@NotNullByDefault
+package $packageName;
+<% if (packageName != "example.annotation")  out.print "\nimport example.annotation.NotNullByDefault;\n"%>

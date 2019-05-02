@@ -1,7 +1,62 @@
+import groovy.io.FileType
+import groovy.text.SimpleTemplateEngine
+
 plugins {
-    id 'com.github.sherter.google-java-format' version '0.8'
+     id 'com.github.sherter.google-java-format' version '0.8'
 }
 
+def generatedPackageInfoDir = 'generated'
+
 repositories {
-    jcenter()
+    mavenCentral()
+}
+
+allprojects {
+    group 'example.io.leowei'
+
+    apply plugin: 'java'
+
+    repositories {
+        mavenCentral()
+    }
+
+    if (!it.name.startsWith('lib')) {
+        dependencies {
+            implementation project(':lib')     
+        }
+    }
+}
+
+// clean.doLast { generatePackageInfo }
+subprojects {
+
+    sourceSets.main.java.srcDirs generatedPackageInfoDir
+    def projectDir = it.projectDir
+
+    task generatePackageInfo {
+
+        def packages = [] as Set
+
+        new File(projectDir.path).eachFileRecurse(FileType.FILES) {
+            if (it.name.endsWith('.java')) {
+                packages << ((it.text =~ "package (.+);")[0][1])
+            }
+        }
+
+        packages.each {
+            def generatedDir = new File(projectDir.path + '/' + generatedPackageInfoDir + '/' + it.replaceAll('\\.', '/'))
+            generatedDir.deleteDir()
+            def dir = mkdir(generatedDir.path)
+            def outputFile = new File(dir.absolutePath, 'package-info.java')
+            String templateOutput = applyPackageInfoTemplate(it)
+            outputFile << templateOutput
+        }
+    }
+}
+
+private static String applyPackageInfoTemplate(packageName) {
+    def engine = new SimpleTemplateEngine()
+    def templateText = new File('package-info.template').text
+    def templateParams = ['packageName': packageName]
+    engine.createTemplate(templateText).make(templateParams).toString()
 }

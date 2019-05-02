@@ -1,2 +1,2 @@
 rootProject.name = 'mono-repo'
-include 'project-a', 'project-b', 'project-c', 'project-d'
+include 'lib', 'project-a', 'project-b', 'project-c', 'project-d'
